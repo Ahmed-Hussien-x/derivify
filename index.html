@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Derivify | حاسبة المشتقات الرياضية السريعة</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- KaTeX for rendering math formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <!-- Math.js for CAS & symbolic derivative calculations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .math-btn {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            transition: all 0.2s ease;
+        }
+        .math-btn:hover {
+            background-color: #3b82f6;
+            color: #ffffff;
+            border-color: #60a5fa;
+            transform: translateY(-2px);
+        }
+        .math-btn:active {
+            transform: translateY(0);
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-blue-500 selection:text-white">
+
+    <!-- Header Section -->
+    <header class="w-full py-6 px-4 border-b border-slate-800 glass-panel sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                    <i class="fa-solid font-bold text-xl">f'</i>
+                </div>
+                <h1 class="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-300">
+                    Derivify
+                </h1>
+            </div>
+            <span class="text-xs bg-slate-800 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-full font-semibold">
+                حاسبة مشتقات ذكية
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow flex items-center justify-center p-4 md:p-8">
+        <div class="w-full max-w-3xl glass-panel rounded-3xl p-6 md:p-10 shadow-2xl relative overflow-hidden">
+            
+            <!-- Background Decorative Glow -->
+            <div class="absolute -top-24 -right-24 w-60 h-60 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-60 h-60 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Intro Text -->
+            <div class="mb-8 text-center">
+                <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-2">Derivify</h2>
+                <p class="text-slate-400 text-sm md:text-base">أدخل أي دالة رياضية واحصل على المشتقة الأولى فوراً وبأعلى دقة</p>
+            </div>
+
+            <!-- Input Form Section -->
+            <div class="space-y-6">
+                <!-- Expression Input Group -->
+                <div>
+                    <label for="functionInput" class="block text-sm font-semibold text-slate-300 mb-2">
+                        الدالة المراد اشتقاقها f(x):
+                    </label>
+                    <div class="relative flex items-center">
+                        <input type="text" id="functionInput" placeholder="مثال: x^2 + 3*x + sin(x)" dir="ltr"
+                            class="w-full bg-slate-900/90 border border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 text-blue-300 font-mono text-lg rounded-2xl px-5 py-4 outline-none transition duration-200 pl-12 shadow-inner">
+                        <button onclick="clearInput()" title="مسح الحقل" class="absolute left-4 text-slate-500 hover:text-red-400 transition">
+                            <i class="fa-solid font-semibold text-lg">✕</i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Variable Choice & Options -->
+                <div class="flex items-center justify-between bg-slate-900/40 p-3 rounded-2xl border border-slate-800">
+                    <span class="text-sm text-slate-400 font-medium">الاشتقاق بالنسبة للمتغير:</span>
+                    <div class="flex items-center space-x-2 space-x-reverse">
+                        <label class="text-sm font-bold text-blue-400">d / d</label>
+                        <input type="text" id="variableInput" value="x" maxlength="2" dir="ltr"
+                            class="w-12 text-center bg-slate-800 border border-slate-700 text-white font-mono rounded-lg py-1 focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+
+                <!-- Quick Insert Math Buttons Keyboard -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-2">رموز ودوال سريعة:</label>
+                    <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 font-mono text-sm">
+                        <button onclick="insertSymbol('x')" class="math-btn py-2.5 rounded-xl font-bold text-blue-300">x</button>
+                        <button onclick="insertSymbol('^')" class="math-btn py-2.5 rounded-xl font-bold">^</button>
+                        <button onclick="insertSymbol('+')" class="math-btn py-2.5 rounded-xl font-bold">+</button>
+                        <button onclick="insertSymbol('-')" class="math-btn py-2.5 rounded-xl font-bold">-</button>
+                        <button onclick="insertSymbol('*')" class="math-btn py-2.5 rounded-xl font-bold">*</button>
+                        <button onclick="insertSymbol('/')" class="math-btn py-2.5 rounded-xl font-bold">/</button>
+                        <button onclick="insertSymbol('(')" class="math-btn py-2.5 rounded-xl font-bold">(</button>
+                        <button onclick="insertSymbol(')')" class="math-btn py-2.5 rounded-xl font-bold">)</button>
+                        
+                        <button onclick="insertSymbol('sin(')" class="math-btn py-2.5 rounded-xl text-xs font-semibold">sin</button>
+                        <button onclick="insertSymbol('cos(')" class="math-btn py-2.5 rounded-xl text-xs font-semibold">cos</button>
+                        <button onclick="insertSymbol('tan(')" class="math-btn py-2.5 rounded-xl text-xs font-semibold">tan</button>
+                        <button onclick="insertSymbol('ln(')" class="math-btn py-2.5 rounded-xl text-xs font-semibold text-emerald-400 font-bold">ln</button>
+                        <button onclick="insertSymbol('log(')" class="math-btn py-2.5 rounded-xl text-xs font-semibold">log</button>
+                        <button onclick="insertSymbol('sqrt(')" class="math-btn py-2.5 rounded-xl text-xs font-semibold">√ (sqrt)</button>
+                        <button onclick="insertSymbol('e^(')" class="math-btn py-2.5 rounded-xl text-xs font-semibold">e^x</button>
+                        <button onclick="insertSymbol('pi')" class="math-btn py-2.5 rounded-xl text-xs font-semibold">π</button>
+                        <button onclick="insertSymbol('abs(')" class="math-btn py-2.5 rounded-xl text-xs font-semibold">|x|</button>
+                    </div>
+                </div>
+
+                <!-- Calculate Button -->
+                <button onclick="calculateDerivative()" 
+                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-600/30 transition duration-300 transform active:scale-[0.99] flex items-center justify-center space-x-2 space-x-reverse text-lg">
+                    <i class="fa-solid fa-calculator"></i>
+                    <span>أوجد المشتقة الآن</span>
+                </button>
+            </div>
+
+            <!-- Error Notification Display -->
+            <div id="errorMessage" class="hidden mt-6 bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-2xl text-sm text-center">
+            </div>
+
+            <!-- Output & Results Section -->
+            <div id="resultSection" class="hidden mt-8 pt-8 border-t border-slate-800 space-y-6">
+                <!-- Expression Rendering -->
+                <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800">
+                    <h3 class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">الدالة الأصلية:</h3>
+                    <div id="latexOriginal" class="text-lg md:text-xl text-slate-200 overflow-x-auto py-2"></div>
+                </div>
+
+                <!-- Derivative Result Rendering -->
+                <div class="bg-gradient-to-r from-blue-950/40 to-slate-900/80 p-6 rounded-2xl border border-blue-500/30 shadow-inner">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider">النتيجة النهائية (المشتقة):</h3>
+                        <button onclick="copyResult()" title="نسخ النتيجة" class="text-slate-400 hover:text-white transition text-sm flex items-center gap-1 bg-slate-800 px-3 py-1 rounded-lg border border-slate-700">
+                            <i class="fa-solid fa-copy"></i>
+                            <span id="copyText">نسخ</span>
+                        </button>
+                    </div>
+                    <div id="latexResult" class="text-xl md:text-3xl text-emerald-400 overflow-x-auto py-3 font-semibold"></div>
+                </div>
+            </div>
+
+            <!-- Common Examples Helper -->
+            <div class="mt-8 pt-6 border-t border-slate-800/60">
+                <span class="text-xs text-slate-500 block mb-3 font-semibold">أمثلة سريعة للتجربة:</span>
+                <div class="flex flex-wrap gap-2 text-xs">
+                    <button onclick="loadExample('x^3 - 4*x^2 + 7')" class="bg-slate-800/60 hover:bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700/50 transition">x³ - 4x² + 7</button>
+                    <button onclick="loadExample('ln(x) * x')" class="bg-slate-800/60 hover:bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700/50 transition">ln(x) * x</button>
+                    <button onclick="loadExample('sin(x) * cos(x)')" class="bg-slate-800/60 hover:bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700/50 transition">sin(x) * cos(x)</button>
+                    <button onclick="loadExample('e^(2*x)')" class="bg-slate-800/60 hover:bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700/50 transition">e^(2x)</button>
+                    <button onclick="loadExample('ln(x) / x')" class="bg-slate-800/60 hover:bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700/50 transition">ln(x) / x</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full py-4 text-center text-xs text-slate-500 border-t border-slate-800/50">
+        <p>Derivify &copy; - حاسبة المشتقات الرياضية السريعة</p>
+    </footer>
+
+    <!-- Logic & Math Script -->
+    <script>
+        let rawResultString = "";
+
+        // Function to insert text into the main input
+        function insertSymbol(symbol) {
+            const input = document.getElementById('functionInput');
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            const text = input.value;
+            
+            input.value = text.substring(0, start) + symbol + text.substring(end);
+            input.focus();
+            input.selectionStart = input.selectionEnd = start + symbol.length;
+        }
+
+        // Clear Function
+        function clearInput() {
+            document.getElementById('functionInput').value = '';
+            document.getElementById('resultSection').classList.add('hidden');
+            document.getElementById('errorMessage').classList.add('hidden');
+            document.getElementById('functionInput').focus();
+        }
+
+        // Quick Load Examples
+        function loadExample(expr) {
+            document.getElementById('functionInput').value = expr;
+            calculateDerivative();
+        }
+
+        // Main Calculation Function
+        function calculateDerivative() {
+            const exprInput = document.getElementById('functionInput').value.trim();
+            const variable = document.getElementById('variableInput').value.trim() || 'x';
+            const errorDiv = document.getElementById('errorMessage');
+            const resultSection = document.getElementById('resultSection');
+
+            // Reset status
+            errorDiv.classList.add('hidden');
+            resultSection.classList.add('hidden');
+
+            if (!exprInput) {
+                showError("برجاء أدخال دالة رياضية أولاً لحساب مشتقتها.");
+                return;
+            }
+
+            try {
+                // Convert 'ln(' to 'log(' so math.js treats it as natural logarithm
+                const parsedExpr = exprInput.replace(/\bln\(/g, 'log(');
+
+                // Calculate Derivative using Math.js
+                const derivativeNode = math.derivative(parsedExpr, variable);
+                
+                // Simplify the output expression
+                const simplifiedNode = math.simplify(derivativeNode);
+                rawResultString = simplifiedNode.toString();
+
+                // Format LaTeX for Math Presentation
+                const originalNode = math.parse(parsedExpr);
+                let originalTex = originalNode.toTex();
+                let derivativeTex = simplifiedNode.toTex();
+
+                // Replace \log back to \ln in LaTeX for clean natural log display
+                originalTex = originalTex.replace(/\\log/g, '\\ln');
+                derivativeTex = derivativeTex.replace(/\\log/g, '\\ln');
+
+                // Render Original Function in LaTeX using KaTeX
+                katex.render(`f(${variable}) = ${originalTex}`, document.getElementById('latexOriginal'), {
+                    throwOnError: false,
+                    displayMode: true
+                });
+
+                // Render Derived Result in LaTeX using KaTeX
+                katex.render(`f'(${variable}) = \\frac{d}{d${variable}}\\left(${originalTex}\\right) = ${derivativeTex}`, document.getElementById('latexResult'), {
+                    throwOnError: false,
+                    displayMode: true
+                });
+
+                // Show Results Box
+                resultSection.classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                showError("تأكد من صحة الصيغة الرياضية المدخلة (مثال: x^2 + ln(x) + sin(x)).");
+            }
+        }
+
+        // Display Error Box
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerText = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        // Copy Text Function
+        function copyResult() {
+            if (!rawResultString) return;
+            
+            // Clipboard Fallback Strategy
+            const textArea = document.createElement("textarea");
+            textArea.value = rawResultString;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                const copyText = document.getElementById('copyText');
+                copyText.innerText = "تم النسخ!";
+                setTimeout(() => {
+                    copyText.innerText = "نسخ";
+                }, 2000);
+            } catch (err) {
+                console.error("فشل النسخ", err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Calculate when pressing Enter key in input field
+        document.getElementById('functionInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                calculateDerivative();
+            }
+        });
+    </script>
+</body>
+</html>
